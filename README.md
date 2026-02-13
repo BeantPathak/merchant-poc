@@ -96,19 +96,19 @@ The PowerShell script:
  ## Local Setup
 
 1. **Start Docker Compose**:  
-       docker compose up -d
-2. **Bypass Script Execution firewall in Powershell**:   
-       Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass (Powershell)
-4. **Deploy Lambdas and Step Function**:
-       .\deploy.ps1
-6. **Start a Step Function execution**:
-       aws --endpoint-url=http://localhost:4566 stepfunctions start-execution --state-machine-arn <state-machine-arn> --input '{}'
-7. **Check execution history**:
-       aws --endpoint-url=http://localhost:4566 stepfunctions get-execution-history --execution-arn <execution-arn>
-8. **Approve KYC (manually or via Lambda test)**: 
-       aws --endpoint-url=http://localhost:4566 lambda invoke --function-name kyccallback --payload '{"kycId":1,"status":"APPROVED","TaskToken":"<token>"}' output.json
-9. **To restart execution**:
-       docker compose down -v     
-       Restart from Step 1
+       `docker compose up -d`
+2. **Bypass Script Execution firewall in Powershell**:            
+       `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
+4. **Deploy Lambdas and Step Function**:   
+       `.\deploy.ps1`
+6. **Start a Step Function execution**:         
+       `aws --endpoint-url=http://localhost:4566 stepfunctions start-execution --state-machine-arn <state-machine-arn> --input '{}'`
+7. **Check execution history**:   
+       `aws --endpoint-url=http://localhost:4566 stepfunctions get-execution-history --execution-arn <execution-arn>`
+8. **Approve KYC (manually or via Lambda test)**:   
+       `aws --endpoint-url=http://localhost:4566 lambda invoke --function-name kyccallback --payload '{"kycId":1,"status":"APPROVED","TaskToken":"<token>"}' output.json`
+9. **To restart execution**:  
+       `docker compose down -v`     
+           Restart from Step 1
 
 
