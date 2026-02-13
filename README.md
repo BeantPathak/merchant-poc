@@ -7,6 +7,11 @@ docker run -d --name localstack -p 4566:4566 -p 4510-4559:4510-4559 -e SERVICES=
 
 
 AWS CLI
+aws configure
+# Access key: test
+# Secret key: test
+# Region: us-east-1
+
 
 Python 3.10 + pip
 
