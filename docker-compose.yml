@@ -1,0 +1,39 @@
+version: '3.8'
+
+networks:
+  onboarding-net:
+    driver: bridge
+
+services:
+  merchant-postgres:
+    image: postgres:15
+    container_name: merchant-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - onboarding-net
+
+  localstack:
+    image: localstack/localstack:2.1
+    container_name: localstack
+    environment:
+      SERVICES: lambda,stepfunctions
+      DEFAULT_REGION: us-east-1
+      DATA_DIR: /tmp/localstack/data
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    volumes:
+      - ./localstack:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - onboarding-net
+
+volumes:
+  pgdata:

@@ -1,0 +1,51 @@
+{
+  "StartAt": "CreateMerchant",
+  "States": {
+    "CreateMerchant": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:000000000000:function:create_merchant",
+      "Next": "StartKYC"
+    },
+    "StartKYC": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "start_kyc",
+        "Payload": {
+          "merchantId.$": "$.merchantId",
+          "TaskToken.$": "$$.Task.Token"
+        }
+      },
+      "Next": "KYCResult"
+    },
+    "KYCResult": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.status",
+          "StringEquals": "APPROVED",
+          "Next": "RiskAnalysis"
+        },
+        {
+          "Variable": "$.status",
+          "StringEquals": "REJECTED",
+          "Next": "KYCFailed"
+        }
+      ]
+    },
+    "RiskAnalysis": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:000000000000:function:risk_analysis",
+      "Next": "ActivateMerchant"
+    },
+    "ActivateMerchant": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:000000000000:function:activate_merchant",
+      "End": true
+    },
+    "KYCFailed": {
+      "Type": "Fail",
+      "Cause": "KYC not approved"
+    }
+  }
+}
