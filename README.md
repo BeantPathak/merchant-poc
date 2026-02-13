@@ -2,12 +2,8 @@ Install prerequisites
 
 Docker + LocalStack
 
-docker run -d --name localstack \
-  -p 4566:4566 -p 4510-4559:4510-4559 \
-  -e SERVICES=lambda,stepfunctions,postgres \
-  -e DEBUG=1 \
-  -e DATA_DIR=/tmp/localstack/data \
-  localstack/localstack
+docker run -d --name localstack -p 4566:4566 -p 4510-4559:4510-4559 -e SERVICES=lambda,stepfunctions,postgres -e DEBUG=1 -e DATA_DIR=/tmp/localstack/data localstack/localstack
+
 
 
 AWS CLI
