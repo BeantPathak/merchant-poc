@@ -97,17 +97,17 @@ The PowerShell script:
 
 1. **Start Docker Compose**:  
        docker compose up -d
-2. **Bypass Script Execution firewall in Powershell**: 
+2. **Bypass Script Execution firewall in Powershell**:   
        Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass (Powershell)
-3. **Deploy Lambdas and Step Function**: 
+4. **Deploy Lambdas and Step Function**:
        .\deploy.ps1
-4. **Start a Step Function execution**: 
+6. **Start a Step Function execution**:
        aws --endpoint-url=http://localhost:4566 stepfunctions start-execution --state-machine-arn <state-machine-arn> --input '{}'
-5. **Check execution history**: 
+7. **Check execution history**:
        aws --endpoint-url=http://localhost:4566 stepfunctions get-execution-history --execution-arn <execution-arn>
-6. **Approve KYC (manually or via Lambda test)**: 
+8. **Approve KYC (manually or via Lambda test)**: 
        aws --endpoint-url=http://localhost:4566 lambda invoke --function-name kyccallback --payload '{"kycId":1,"status":"APPROVED","TaskToken":"<token>"}' output.json
-7. **To restart execution**:
+9. **To restart execution**:
        docker compose down -v     
        Restart from Step 1
 
