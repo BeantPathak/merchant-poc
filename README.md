@@ -6,7 +6,7 @@ This project demonstrates a **merchant onboarding workflow** using **AWS Step Fu
 
  # Prerequisites
  
- **Docker, Python 3.15+, pip and AWS CLI**
+ **Docker, Python 3.10+, PIP and AWS CLI**
 
 
 ## Overview
