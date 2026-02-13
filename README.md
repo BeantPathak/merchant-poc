@@ -1,30 +1,116 @@
-Install prerequisites
+ # Merchant Onboarding POC
 
-Docker + LocalStack
+This project demonstrates a **merchant onboarding workflow** using **AWS Step Functions** and **serverless Lambdas** locally with **LocalStack**.
 
-docker run -d --name localstack -p 4566:4566 -p 4510-4559:4510-4559 -e SERVICES=lambda,stepfunctions,postgres -e DEBUG=1 -e DATA_DIR=/tmp/localstack/data localstack/localstack
+---
 
-
-
-AWS CLI
-
-Python 3.10 + pip
-
-pg8000
+ # Prerequisites
+ 
+ Docker
+ Python 3.15+ + pip
+ AWS CLI
 
 
-localstack start
+## Overview
 
-docker compose down -v
+The POC implements a merchant onboarding flow:
 
-docker compose up -d
+1. **Create merchant** in the database.
+2. **Start KYC** (Know Your Customer) verification.
+3. **Handle KYC approval/rejection**.
+4. **Perform risk analysis**.
+5. **Activate merchant** if approved.
+
+All services run locally via **Docker**.
+
+---
+
+## Architecture
+
+- **PostgreSQL**: Stores merchant and KYC data.
+- **AWS Lambda functions**: Implement business logic.
+- **AWS Step Functions**: Orchestrates the workflow.
+- **LocalStack**: Emulates AWS services locally.
+
+---
+
+## Step Function Workflow
+
+CreateMerchant -> StartKYC -> KYCResult -> {RiskAnalysis -> ActivateMerchant | KYCFailed}
+
+**States:**
+
+- `CreateMerchant` – Inserts a merchant record, returns `merchantId`.
+- `StartKYC` – Inserts KYC record (`PENDING`), returns `TaskToken`.
+- `KYCResult` – Choice state based on KYC status:
+  - `APPROVED` → RiskAnalysis → ActivateMerchant
+  - `REJECTED` → Fail
+- `RiskAnalysis` – Simulates a risk check.
+- `ActivateMerchant` – Marks merchant as active.
+- `KYCFailed` – Ends workflow if KYC is rejected.
+
+---
+
+## Lambda Functions
+
+| Function        | Purpose                                                                 |
+|-----------------|-------------------------------------------------------------------------|
+| `create_merchant` | Adds merchant to Postgres, returns `merchantId`.                       |
+| `start_kyc`       | Creates KYC record with status `PENDING`, returns `TaskToken`.         |
+| `kyccallback`     | Updates KYC status, calls Step Functions `send_task_success`.          |
+| `risk_analysis`   | Performs risk check (simulated).                                       |
+| `activate_merchant` | Activates merchant after successful onboarding.                      |
+
+**Notes:**
+
+- `start_kyc` uses **wait for task token** to simulate human approval.
+- `kyccallback` must receive **valid JSON with double quotes** when testing locally.
+
+---
+
+## Database
+
+- **Postgres Container**: Initialized via `init-db.sql`.
+- Tables:
+  - `merchants`: Stores merchant info.
+  - `kyc`: Stores KYC records and status.
+
+---
+
+## Deployment Script
+
+The PowerShell script:
+
+1. Zips Lambda directories including Python dependencies (`pg8000`).
+2. Deploys or updates Lambda functions to LocalStack.
+3. Deploys the Step Function workflow.
+4. Initializes Postgres via Docker.
+
+**Key Points:**
+
+- Uses **pg8000** for Postgres access inside Lambdas.
+- Targets **Python 3.10**.
+- Uses LocalStack endpoint `http://localhost:4566`.
+
+---
 
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+ ## Local Setup
 
-.\deploy.ps1
+1. **Start Docker Compose**:  
+       docker compose up -d
+2. **Bypass Script Execution firewall in Powershell**: 
+       Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass (Powershell)
+3. **Deploy Lambdas and Step Function**: 
+       .\deploy.ps1
+4. **Start a Step Function execution**: 
+       aws --endpoint-url=http://localhost:4566 stepfunctions start-execution --state-machine-arn <state-machine-arn> --input '{}'
+5. **Check execution history**: 
+       aws --endpoint-url=http://localhost:4566 stepfunctions get-execution-history --execution-arn <execution-arn>
+6. **Approve KYC (manually or via Lambda test)**: 
+       aws --endpoint-url=http://localhost:4566 lambda invoke --function-name kyccallback --payload '{"kycId":1,"status":"APPROVED","TaskToken":"<token>"}' output.json
+7. **To restart execution**:
+       docker compose down -v     
+       Restart from Step 1
 
- aws --endpoint-url http://localhost:4566 stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:000000000000:stateMachine:merchant-onboarding --input "{}"
-
- aws --endpoint-url http://localhost:4566 stepfunctions get-execution-history --execution-arn arn:aws:states:us-east-1:000000000000:execution:merchant-onboarding:31111ac7-6393-4973-9257-ef56a11ccf50
 
